@@ -4,14 +4,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"practice/config"
-	"practice/database"
 	"practice/utils"
 )
 
 type ReqUser struct {
-	Email string `json:"email"`
-	Password  string `json:"password"`
+	Email    string `json:"email"`
+	Password string `json:"password"`
 }
 
 func (h *Handler) LoginUser(w http.ResponseWriter, r *http.Request) {
@@ -23,17 +21,19 @@ func (h *Handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	fmt.Println("req:",reqUser)
+	fmt.Println("req:", reqUser)
 
-	usr := database.Find(reqUser.Email, reqUser.Password)
+	usr, err := h.userRepo.Find(reqUser.Email, reqUser.Password)
+	if err != nil {
+		http.Error(w, "plz give me valid json", http.StatusBadRequest)
+		return
+	}
 	if usr == nil {
 		http.Error(w, "Invalid credential the login user", 400)
 		return
 	}
 
-	cnf := config.GetConfig()
-
-	accessToken, err := utils.CreatJwt(cnf.JwtSecretKey, utils.Payload{
+	accessToken, err := utils.CreatJwt(h.cnf.JwtSecretKey, utils.Payload{
 		Sub:         usr.ID,
 		FirstName:   usr.FirstName,
 		LastName:    usr.LastName,

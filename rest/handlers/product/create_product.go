@@ -3,20 +3,37 @@ package product
 import (
 	"encoding/json"
 	"net/http"
-	"practice/database"
+	"practice/repo"
 	"practice/utils"
 )
 
+type ReqCreateProduct struct {
+	Title       string `json:"title"`
+	Description string `json:"description"`
+	Price       int    `json:"price"`
+	ImgaeUrl    string `json:"image_url"`
+}
+
 func (h *Handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 
-	var newProduct database.Product
+	var newProduct ReqCreateProduct
 	err := json.NewDecoder(r.Body).Decode(&newProduct)
 	if err != nil {
 		http.Error(w, "plz give me valid json", http.StatusBadRequest)
 		return
 	}
+
+	createdProduct, err := h.productRepo.Create(repo.Product{
+		Title: newProduct.Title,
+		Description: newProduct.Description,
+		Price: newProduct.Price,
+		ImgaeUrl: newProduct.ImgaeUrl,
+	})
 	
-	createdProduct := database.Stor(newProduct)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
 
 	utils.SendData(w, createdProduct, 201)
 }

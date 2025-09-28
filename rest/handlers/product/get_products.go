@@ -2,12 +2,16 @@ package product
 
 import (
 	"net/http"
-	"practice/database"
 	"practice/utils"
 )
 
 func (h *Handler) GetProducts(w http.ResponseWriter, r *http.Request) {
 
-	utils.SendData(w, database.List(), 200)
+	productList, err := h.productRepo.List()
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
+	utils.SendData(w, productList, 200)
 
 }

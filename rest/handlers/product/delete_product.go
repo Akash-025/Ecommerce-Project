@@ -3,7 +3,6 @@ package product
 import (
 	"fmt"
 	"net/http"
-	"practice/database"
 	"practice/utils"
 	"strconv"
 )
@@ -17,6 +16,10 @@ func (h *Handler) DeleteProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	database.Delete(pid)
+	err = h.productRepo.Delete(pid)
+	if err != nil {
+		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		return
+	}
 	utils.SendData(w, "Product deleted successfully", 201)
 }
