@@ -37,7 +37,7 @@ func (h *Handler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		Title: updateProduct.Title,
 		Description: updateProduct.Description,
 		Price: updateProduct.Price,
-		ImgaeUrl: updateProduct.ImgaeUrl,
+		ImageUrl: updateProduct.ImgaeUrl,
 	})
 	if err != nil {
 		http.Error(w, "plz give me valid json", http.StatusBadRequest)

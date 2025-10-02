@@ -1,7 +1,10 @@
 package cmd
 
 import (
+	"fmt"
+	"os"
 	"practice/config"
+	"practice/infra/db"
 	"practice/repo"
 	"practice/rest"
 	"practice/rest/handlers/product"
@@ -14,8 +17,14 @@ func Serve() {
 	cnf := config.GetConfig()
 	middlewares := middleware.NewMiddleware(cnf)
 
-	userRepo := repo.NewUserRepo()
-	productRepo := repo.NewProductRepo()
+	dbCon, err := db.NewConnection(&cnf.DB)
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(1)
+	}
+
+	userRepo := repo.NewUserRepo(dbCon)
+	productRepo := repo.NewProductRepo(dbCon)
 
 	productHandler := product.NewHandler(middlewares, productRepo)
 	userHandler := user.NewHandler(userRepo, cnf)

@@ -1,15 +1,22 @@
 package repo
 
+import (
+	"database/sql"
+	"fmt"
+
+	"github.com/jmoiron/sqlx"
+)
+
 type Product struct {
-	ID          int `json:"id"`
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	Price       int `json:"price"`
-	ImgaeUrl    string `json:"image_url"`
+	ID          int    `json:"id" db:"id"`
+	Title       string `json:"title" db:"title"`
+	Description string `json:"description" db:"description"`
+	Price       int    `json:"price" db:"price"`
+	ImageUrl    string `json:"image_url" db:"image_url"`
 }
 
 type ProductRepo interface {
-	Create(p Product) (Product, error)
+	Create(p Product) (*Product, error)
 	Get(pid int) (*Product, error)
 	List() ([]*Product, error)
 	Update(product Product) (*Product, error)
@@ -17,88 +24,104 @@ type ProductRepo interface {
 }
 
 type productRepo struct {
-	productList []*Product
+	db *sqlx.DB
 }
 
 // Constructor or constructor function
-func NewProductRepo() ProductRepo {
-	repo := &productRepo{}
-	generate(repo)
-	return repo 
+func NewProductRepo(db *sqlx.DB) ProductRepo {
+	return &productRepo{
+		db: db,
+	}
 }
 
+func (r *productRepo) Create(p Product) (*Product, error) {
+	query := `
+        INSERT INTO products (title, description, price, image_url)
+        VALUES ($1, $2, $3, $4)
+        RETURNING id;
+    `
 
-func (r *productRepo) Create(p Product) (Product, error) {
-	p.ID = len(r.productList)+1
-	r.productList = append(r.productList, &p)
+	err := r.db.QueryRow(query,
+		p.Title,
+		p.Description,
+		p.Price,
+		p.ImageUrl,
+	).Scan(&p.ID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return &p, nil
+}
+
+func (r *productRepo) Get(pid int) (*Product, error) {
+	var p Product
+	query := `
+        SELECT id, title, description, price, image_url
+        FROM products
+        WHERE id = $1;
+    `
+	err := r.db.Get(&p, query, pid)
+
+	if err == sql.ErrNoRows {
+		return nil, nil // not found
+	} else if err != nil {
+		return nil, err
+	}
+
+	return &p, nil
+}
+
+func (r *productRepo) List() ([]*Product, error) {
+	var p []*Product
+	query := `
+        SELECT id, title, description, price, image_url
+        FROM products
+    `
+	err := r.db.Select(&p, query)
+	fmt.Println("P:",p)
+
+	if err != nil {
+		return nil, err
+	}
+
 	return p, nil
 }
-func (r *productRepo) Get(pid int) (*Product, error) {
-	for _, product := range r.productList{
-		if product.ID == pid {
-			return product,nil
-		}
+
+func (r *productRepo) Update(p Product) (*Product, error) {
+	query := `
+        UPDATE products
+        SET title = $1,
+            description = $2,
+            price = $3,
+            image_url = $4,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = $5
+       
+    `
+
+	err := r.db.QueryRow(query,
+		p.Title,
+		p.Description,
+		p.Price,
+		p.ImageUrl,
+		p.ID,
+	).Err()
+
+	if err != nil {
+		return nil, err
 	}
-	return nil, nil
+
+	return &p, nil
 }
-func (r *productRepo) List() ([]*Product, error) {
-	return r.productList, nil
-}
-func (r *productRepo) Update(product Product) (*Product, error) {
-	for idx, p := range r.productList{
-		if p.ID == product.ID{
-			r.productList[idx] = &product
-		}
-	}
-	return &product, nil
-}
+
 func (r *productRepo) Delete(productId int) error {
-	var tempList []*Product
+	query := `DELETE FROM products WHERE id = $1`
 
-	for _, product := range r.productList{
-		if product.ID != productId{
-		   tempList = append(tempList, product)
-		}
+	_, err := r.db.Exec(query, productId)
+	if err != nil {
+		return err
 	}
-	r.productList = tempList
 	return nil
-}
-
-func generate(r *productRepo) {
-	productList1 := &Product{
-		Title:       "Mango",
-		Description: "Favorite",
-		Price:       50,
-		ImgaeUrl:    "oewii",
-		ID:          1,
-	}
-
-	productList2 := &Product{
-		Title:       "Banana",
-		Description: "Little Favorite",
-		Price:       10,
-		ImgaeUrl:    "oewii",
-		ID:          2,
-	}
-
-	productList3 := &Product{
-		Title:       "Jackfrout",
-		Description: "Not Favorite",
-		Price:       80,
-		ImgaeUrl:    "oewii",
-		ID:          3,
-	}
-	productList4 := &Product{
-		Title:       "Jackfrout",
-		Description: "Not Favorite",
-		Price:       80,
-		ImgaeUrl:    "oewii",
-		ID:          4,
-	}
-
-	r.productList = append(r.productList, productList1)
-	r.productList = append(r.productList, productList2)
-	r.productList = append(r.productList, productList3)
-	r.productList = append(r.productList, productList4)
-
 }

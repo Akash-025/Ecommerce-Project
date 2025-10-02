@@ -8,10 +8,11 @@ import (
 )
 
 type ReqCreateProduct struct {
-	Title       string `json:"title"`
-	Description string `json:"description"`
-	Price       int    `json:"price"`
-	ImgaeUrl    string `json:"image_url"`
+	ID          int    `json:"id" db:"id"`
+	Title       string `json:"title" db:"title"`
+	Description string `json:"description" db:"description"`
+	Price       int    `json:"price" db:"price"`
+	ImageUrl    string `json:"image_url" db:"image_url"`
 }
 
 func (h *Handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
@@ -27,7 +28,7 @@ func (h *Handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 		Title: newProduct.Title,
 		Description: newProduct.Description,
 		Price: newProduct.Price,
-		ImgaeUrl: newProduct.ImgaeUrl,
+		ImageUrl: newProduct.ImageUrl,
 	})
 	
 	if err != nil {
