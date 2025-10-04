@@ -3,24 +3,15 @@ package repo
 import (
 	"database/sql"
 	"fmt"
+	"practice/domain"
+	"practice/product"
 
 	"github.com/jmoiron/sqlx"
 )
 
-type Product struct {
-	ID          int    `json:"id" db:"id"`
-	Title       string `json:"title" db:"title"`
-	Description string `json:"description" db:"description"`
-	Price       int    `json:"price" db:"price"`
-	ImageUrl    string `json:"image_url" db:"image_url"`
-}
 
 type ProductRepo interface {
-	Create(p Product) (*Product, error)
-	Get(pid int) (*Product, error)
-	List() ([]*Product, error)
-	Update(product Product) (*Product, error)
-	Delete(productId int) error
+	product.ProductRepo
 }
 
 type productRepo struct {
@@ -34,7 +25,7 @@ func NewProductRepo(db *sqlx.DB) ProductRepo {
 	}
 }
 
-func (r *productRepo) Create(p Product) (*Product, error) {
+func (r *productRepo) Create(p domain.Product) (*domain.Product, error) {
 	query := `
         INSERT INTO products (title, description, price, image_url)
         VALUES ($1, $2, $3, $4)
@@ -55,8 +46,8 @@ func (r *productRepo) Create(p Product) (*Product, error) {
 	return &p, nil
 }
 
-func (r *productRepo) Get(pid int) (*Product, error) {
-	var p Product
+func (r *productRepo) Get(pid int) (*domain.Product, error) {
+	var p domain.Product
 	query := `
         SELECT id, title, description, price, image_url
         FROM products
@@ -73,8 +64,8 @@ func (r *productRepo) Get(pid int) (*Product, error) {
 	return &p, nil
 }
 
-func (r *productRepo) List() ([]*Product, error) {
-	var p []*Product
+func (r *productRepo) List() ([]*domain.Product, error) {
+	var p []*domain.Product
 	query := `
         SELECT id, title, description, price, image_url
         FROM products
@@ -89,7 +80,7 @@ func (r *productRepo) List() ([]*Product, error) {
 	return p, nil
 }
 
-func (r *productRepo) Update(p Product) (*Product, error) {
+func (r *productRepo) Update(p domain.Product) (*domain.Product, error) {
 	query := `
         UPDATE products
         SET title = $1,

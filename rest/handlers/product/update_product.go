@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
-	"practice/repo"
+	"practice/domain"
 	"practice/utils"
 	"strconv"
 )
@@ -31,13 +31,13 @@ func (h *Handler) UpdateProduct(w http.ResponseWriter, r *http.Request) {
 		fmt.Println("Decoding error", err)
 		return
 	}
-	
-	_, err = h.productRepo.Update(repo.Product{
-		ID: pid,
-		Title: updateProduct.Title,
+
+	_, err = h.svc.Update(domain.Product{
+		ID:          pid,
+		Title:       updateProduct.Title,
 		Description: updateProduct.Description,
-		Price: updateProduct.Price,
-		ImageUrl: updateProduct.ImgaeUrl,
+		Price:       updateProduct.Price,
+		ImageUrl:    updateProduct.ImgaeUrl,
 	})
 	if err != nil {
 		http.Error(w, "plz give me valid json", http.StatusBadRequest)

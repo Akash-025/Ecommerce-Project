@@ -3,7 +3,7 @@ package product
 import (
 	"encoding/json"
 	"net/http"
-	"practice/repo"
+	"practice/domain"
 	"practice/utils"
 )
 
@@ -24,13 +24,13 @@ func (h *Handler) CreateProduct(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	createdProduct, err := h.productRepo.Create(repo.Product{
-		Title: newProduct.Title,
+	createdProduct, err := h.svc.Create(domain.Product{
+		Title:       newProduct.Title,
 		Description: newProduct.Description,
-		Price: newProduct.Price,
-		ImageUrl: newProduct.ImageUrl,
+		Price:       newProduct.Price,
+		ImageUrl:    newProduct.ImageUrl,
 	})
-	
+
 	if err != nil {
 		http.Error(w, "Internal server error", http.StatusInternalServerError)
 		return

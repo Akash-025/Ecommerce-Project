@@ -5,11 +5,13 @@ import (
 	"os"
 	"practice/config"
 	"practice/infra/db"
+	"practice/product"
 	"practice/repo"
 	"practice/rest"
-	"practice/rest/handlers/product"
-	"practice/rest/handlers/user"
+	prdctHandler "practice/rest/handlers/product"
+	usrHandler "practice/rest/handlers/user"
 	"practice/rest/middleware"
+	"practice/user"
 )
 
 func Serve() {
@@ -29,11 +31,17 @@ func Serve() {
 		os.Exit(1)
 	}
 
+	//repos
 	userRepo := repo.NewUserRepo(dbCon)
 	productRepo := repo.NewProductRepo(dbCon)
 
-	productHandler := product.NewHandler(middlewares, productRepo)
-	userHandler := user.NewHandler(userRepo, cnf)
+	//domains
+	userSvc := user.NewService(userRepo)
+	productSvc := product.NewService(productRepo)
+
+	//handlers
+	productHandler := prdctHandler.NewHandler(middlewares, productSvc)
+	userHandler := usrHandler.NewHandler(cnf, userSvc)
 
 	Server := rest.NewServer(productHandler, userHandler, cnf)
 	Server.Start()

@@ -23,7 +23,7 @@ func (h *Handler) LoginUser(w http.ResponseWriter, r *http.Request) {
 
 	fmt.Println("req:", reqUser)
 
-	usr, err := h.userRepo.Find(reqUser.Email, reqUser.Password)
+	usr, err := h.svc.Find(reqUser.Email, reqUser.Password)
 	if err != nil {
 		http.Error(w, "plz give me valid json", http.StatusBadRequest)
 		return
